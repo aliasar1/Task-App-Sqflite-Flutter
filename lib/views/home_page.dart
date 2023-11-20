@@ -33,18 +33,21 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _addNote() async {
-    if (_formKey.currentState!.validate()) {
-      Note newNote = Note(
-        name: nameController.text.trim(),
-        description: descriptionController.text.trim(),
-      );
-      int id = await dbHelper.insert(newNote);
-      setState(() {
-        newNote.id = id;
-        _notes.add(newNote);
-      });
-      clearFields();
-    }
+    Note newNote = Note(
+      name: nameController.text.trim(),
+      description: descriptionController.text.trim(),
+    );
+    int id = await dbHelper.insert(newNote);
+    setState(() {
+      newNote.id = id;
+      _notes.add(newNote);
+    });
+    clearFields();
+  }
+
+  void showSnackbar(String message) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _updateNote(int index, int key) async {
@@ -166,6 +169,8 @@ class _MyHomePageState extends State<MyHomePage> {
                         onPressed: () {
                           if (_formKey.currentState!.validate()) {
                             _updateNote(noteIndex!, noteKey!);
+                            showSnackbar('Note updated successfully.');
+                            FocusScope.of(context).unfocus();
                           }
                         },
                         style: TextButton.styleFrom(
@@ -211,6 +216,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           icon: const Icon(Icons.delete),
                           onPressed: () {
                             _deleteNote(index, _notes[index].id!);
+                            showSnackbar('Note deleted successfully.');
                           },
                         ),
                       ],
@@ -225,7 +231,11 @@ class _MyHomePageState extends State<MyHomePage> {
           shape: const CircleBorder(),
           backgroundColor: Colors.blue,
           onPressed: () {
-            _addNote();
+            if (_formKey.currentState!.validate()) {
+              _addNote();
+              showSnackbar('Note added successfully.');
+              FocusScope.of(context).unfocus();
+            }
           },
           child: const Icon(
             Icons.add,
