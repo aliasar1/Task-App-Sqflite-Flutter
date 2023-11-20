@@ -48,18 +48,16 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _updateNote(int index, int key) async {
-    if (_formKey.currentState!.validate()) {
-      Note updatedNote = Note(
-        id: key,
-        name: nameController.text.trim(),
-        description: descriptionController.text.trim(),
-      );
-      await dbHelper.update(updatedNote);
-      setState(() {
-        _notes[index] = updatedNote;
-      });
-      clearFields();
-    }
+    Note updatedNote = Note(
+      id: key,
+      name: nameController.text.trim(),
+      description: descriptionController.text.trim(),
+    );
+    await dbHelper.update(updatedNote);
+    setState(() {
+      _notes[index] = updatedNote;
+    });
+    clearFields();
   }
 
   void _deleteNote(int index, int key) async {
@@ -166,7 +164,9 @@ class _MyHomePageState extends State<MyHomePage> {
                       height: 40,
                       child: TextButton(
                         onPressed: () {
-                          _updateNote(noteIndex!, noteKey!);
+                          if (_formKey.currentState!.validate()) {
+                            _updateNote(noteIndex!, noteKey!);
+                          }
                         },
                         style: TextButton.styleFrom(
                           foregroundColor: Colors.blue,
