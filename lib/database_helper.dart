@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
-import '../models/note.dart';
+import 'note.dart';
 
 class DatabaseHelper {
   static const _databaseName = "demo.db";
