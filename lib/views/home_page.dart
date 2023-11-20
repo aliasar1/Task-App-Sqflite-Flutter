@@ -16,6 +16,8 @@ class _MyHomePageState extends State<MyHomePage> {
   final _formKey = GlobalKey<FormState>();
   final nameController = TextEditingController();
   final descriptionController = TextEditingController();
+  int? noteKey;
+  int? noteIndex;
 
   @override
   void initState() {
@@ -31,34 +33,45 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _addNote() async {
-    Note newNote = Note(
-      name: 'New Note',
-      description: 'Description',
-    );
-    int id = await dbHelper.insert(newNote);
-    setState(() {
-      newNote.id = id;
-      _notes.add(newNote);
-    });
+    if (_formKey.currentState!.validate()) {
+      Note newNote = Note(
+        name: nameController.text.trim(),
+        description: descriptionController.text.trim(),
+      );
+      int id = await dbHelper.insert(newNote);
+      setState(() {
+        newNote.id = id;
+        _notes.add(newNote);
+      });
+      clearFields();
+    }
   }
 
-  void _updateNote(int index) async {
-    Note updatedNote = Note(
-      id: _notes[index].id,
-      name: 'Updated Note',
-      description: 'Updated Description',
-    );
-    await dbHelper.update(updatedNote);
-    setState(() {
-      _notes[index] = updatedNote;
-    });
+  void _updateNote(int index, int key) async {
+    if (_formKey.currentState!.validate()) {
+      Note updatedNote = Note(
+        id: key,
+        name: nameController.text.trim(),
+        description: descriptionController.text.trim(),
+      );
+      await dbHelper.update(updatedNote);
+      setState(() {
+        _notes[index] = updatedNote;
+      });
+      clearFields();
+    }
   }
 
-  void _deleteNote(int index) async {
-    await dbHelper.delete(index);
+  void _deleteNote(int index, int key) async {
+    await dbHelper.delete(key);
     setState(() {
       _notes.removeAt(index);
     });
+  }
+
+  void clearFields() {
+    nameController.clear();
+    descriptionController.clear();
   }
 
   @override
@@ -91,20 +104,27 @@ class _MyHomePageState extends State<MyHomePage> {
                         alignLabelWithHint: true,
                         labelText: "Name",
                         hintText: "Enter note name.",
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6.0),
-                        ),
                         floatingLabelStyle: const TextStyle(
                           color: Colors.black,
                           fontSize: 20,
                         ),
-                        enabledBorder: OutlineInputBorder(
+                        border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(6.0),
-                          borderSide: const BorderSide(
-                            width: 1.0,
-                          ),
+                          borderSide:
+                              const BorderSide(color: Colors.black, width: 1),
+                        ),
+                        focusedErrorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6.0),
+                          borderSide:
+                              const BorderSide(color: Colors.black, width: 1),
                         ),
                       ),
+                      validator: (value) {
+                        if (value!.isEmpty) {
+                          return "Please enter some name.";
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(
                       height: 20,
@@ -117,20 +137,27 @@ class _MyHomePageState extends State<MyHomePage> {
                         alignLabelWithHint: true,
                         labelText: "Description",
                         hintText: "Enter some note description.",
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6.0),
-                        ),
                         floatingLabelStyle: const TextStyle(
                           color: Colors.black,
                           fontSize: 20,
                         ),
-                        enabledBorder: OutlineInputBorder(
+                        border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(6.0),
-                          borderSide: const BorderSide(
-                            width: 1.0,
-                          ),
+                          borderSide:
+                              const BorderSide(color: Colors.black, width: 1),
+                        ),
+                        focusedErrorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6.0),
+                          borderSide:
+                              const BorderSide(color: Colors.black, width: 1),
                         ),
                       ),
+                      validator: (value) {
+                        if (value!.isEmpty) {
+                          return "Please enter some description.";
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(
                       height: 8,
@@ -138,7 +165,9 @@ class _MyHomePageState extends State<MyHomePage> {
                     SizedBox(
                       height: 40,
                       child: TextButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          _updateNote(noteIndex!, noteKey!);
+                        },
                         style: TextButton.styleFrom(
                           foregroundColor: Colors.blue,
                           shape: RoundedRectangleBorder(
@@ -171,13 +200,17 @@ class _MyHomePageState extends State<MyHomePage> {
                         IconButton(
                           icon: const Icon(Icons.edit),
                           onPressed: () {
-                            _updateNote(index);
+                            nameController.text = _notes[index].name;
+                            descriptionController.text =
+                                _notes[index].description;
+                            noteIndex = index;
+                            noteKey = _notes[index].id;
                           },
                         ),
                         IconButton(
                           icon: const Icon(Icons.delete),
                           onPressed: () {
-                            _deleteNote(index);
+                            _deleteNote(index, _notes[index].id!);
                           },
                         ),
                       ],
