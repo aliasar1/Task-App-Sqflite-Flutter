@@ -1,3 +1,4 @@
+// ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 
 import 'database_helper.dart';
@@ -16,8 +17,10 @@ class _MyHomePageState extends State<MyHomePage> {
   final _formKey = GlobalKey<FormState>();
   final nameController = TextEditingController();
   final descriptionController = TextEditingController();
+  final searchController = TextEditingController();
   int? noteKey;
   int? noteIndex;
+  String? noteName;
 
   @override
   void initState() {
@@ -70,11 +73,25 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  Future<bool> _checkDuplication(String text) async {
+    return await dbHelper.checkDuplication(text);
+  }
+
+  void _searchByName() async {
+    List<Note> searchResults =
+        await dbHelper.searchByName(searchController.text.trim());
+    setState(() {
+      _notes = searchResults;
+    });
+  }
+
   void clearFields() {
     nameController.clear();
     descriptionController.clear();
+    searchController.clear();
     noteIndex = null;
     noteKey = null;
+    noteName = null;
   }
 
   @override
@@ -169,15 +186,27 @@ class _MyHomePageState extends State<MyHomePage> {
                       SizedBox(
                         height: 40,
                         child: TextButton(
-                          onPressed: () {
+                          onPressed: () async {
                             if (_formKey.currentState!.validate()) {
                               if (noteIndex == null || noteKey == null) {
                                 showSnackbar(
-                                    'To perform update operation, please select a note first.');
+                                    'To perform the update operation, please select a note first.');
                                 FocusScope.of(context).unfocus();
                               } else {
-                                _updateNote(noteIndex!, noteKey!);
-                                showSnackbar('Note updated successfully.');
+                                if (noteName != nameController.text) {
+                                  bool isDuplicate = await _checkDuplication(
+                                      nameController.text.trim());
+                                  if (!isDuplicate) {
+                                    _updateNote(noteIndex!, noteKey!);
+                                    showSnackbar('Note updated successfully.');
+                                  } else {
+                                    showSnackbar(
+                                        'Please try another note name to avoid duplication.');
+                                  }
+                                } else {
+                                  _updateNote(noteIndex!, noteKey!);
+                                  showSnackbar('Note updated successfully.');
+                                }
                                 FocusScope.of(context).unfocus();
                               }
                             }
@@ -201,6 +230,40 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ),
               ),
+              const SizedBox(
+                height: 10,
+              ),
+              Container(
+                margin:
+                    const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                child: TextFormField(
+                  controller: searchController,
+                  autofocus: false,
+                  decoration: InputDecoration(
+                    alignLabelWithHint: true,
+                    labelText: "Search",
+                    suffixIcon: const Icon(Icons.search, color: Colors.blue),
+                    hintText: "Search note by name",
+                    floatingLabelStyle: const TextStyle(
+                      color: Colors.blue,
+                      fontSize: 20,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6.0),
+                      borderSide:
+                          const BorderSide(color: Colors.blue, width: 1),
+                    ),
+                    focusedErrorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6.0),
+                      borderSide:
+                          const BorderSide(color: Colors.blue, width: 1),
+                    ),
+                  ),
+                  onChanged: (_) {
+                    _searchByName();
+                  },
+                ),
+              ),
               ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -220,6 +283,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 _notes[index].description;
                             noteIndex = index;
                             noteKey = _notes[index].id;
+                            noteName = _notes[index].name;
                           },
                         ),
                         IconButton(
@@ -241,10 +305,17 @@ class _MyHomePageState extends State<MyHomePage> {
         floatingActionButton: FloatingActionButton(
           shape: const CircleBorder(),
           backgroundColor: Colors.blue,
-          onPressed: () {
+          onPressed: () async {
             if (_formKey.currentState!.validate()) {
-              _addNote();
-              showSnackbar('Note added successfully.');
+              bool isDuplicate =
+                  await _checkDuplication(nameController.text.trim());
+              if (!isDuplicate) {
+                _addNote();
+                showSnackbar('Note added successfully.');
+              } else {
+                showSnackbar(
+                    'Please try another note name to avoid duplication.');
+              }
               FocusScope.of(context).unfocus();
             }
           },

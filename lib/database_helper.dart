@@ -75,4 +75,22 @@ class DatabaseHelper {
     Database db = await instance.database;
     return await db.delete(table, where: '$columnId = ?', whereArgs: [id]);
   }
+
+  Future<bool> checkDuplication(String text) async {
+    Database db = await instance.database;
+
+    List<Map<String, dynamic>> result = await db.query(table,
+        columns: [columnName], where: '$columnName = ?', whereArgs: [text]);
+
+    return result.isNotEmpty;
+  }
+
+  Future<List<Note>> searchByName(String name) async {
+    Database db = await instance.database;
+    List<Map<String, dynamic>> maps = await db
+        .query(table, where: '$columnName LIKE ?', whereArgs: ['%$name%']);
+    return List.generate(maps.length, (i) {
+      return Note.fromMap(maps[i]);
+    });
+  }
 }
