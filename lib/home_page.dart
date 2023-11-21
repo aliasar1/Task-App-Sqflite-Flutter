@@ -85,6 +85,38 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  Future<void> _deleteAllNotes() async {
+    bool confirmed = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Deletion'),
+          content: const Text('Are you sure you want to delete all notes?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+              child: const Text('Yes'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+              child: const Text('No'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      await dbHelper.deleteAllNotes();
+      _loadNotes();
+      showSnackbar('All notes deleted successfully.');
+    }
+  }
+
   void clearFields() {
     nameController.clear();
     descriptionController.clear();
@@ -183,48 +215,77 @@ class _MyHomePageState extends State<MyHomePage> {
                       const SizedBox(
                         height: 8,
                       ),
-                      SizedBox(
-                        height: 40,
-                        child: TextButton(
-                          onPressed: () async {
-                            if (_formKey.currentState!.validate()) {
-                              if (noteIndex == null || noteKey == null) {
-                                showSnackbar(
-                                    'To perform the update operation, please select a note first.');
-                                FocusScope.of(context).unfocus();
-                              } else {
-                                if (noteName != nameController.text) {
-                                  bool isDuplicate = await _checkDuplication(
-                                      nameController.text.trim());
-                                  if (!isDuplicate) {
-                                    _updateNote(noteIndex!, noteKey!);
-                                    showSnackbar('Note updated successfully.');
-                                  } else {
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          SizedBox(
+                            height: 40,
+                            child: TextButton(
+                              onPressed: () async {
+                                if (_formKey.currentState!.validate()) {
+                                  if (noteIndex == null || noteKey == null) {
                                     showSnackbar(
-                                        'Please try another note name to avoid duplication.');
+                                        'To perform the update operation, please select a note first.');
+                                    FocusScope.of(context).unfocus();
+                                  } else {
+                                    if (noteName != nameController.text) {
+                                      bool isDuplicate =
+                                          await _checkDuplication(
+                                              nameController.text.trim());
+                                      if (!isDuplicate) {
+                                        _updateNote(noteIndex!, noteKey!);
+                                        showSnackbar(
+                                            'Note updated successfully.');
+                                      } else {
+                                        showSnackbar(
+                                            'Please try another note name to avoid duplication.');
+                                      }
+                                    } else {
+                                      _updateNote(noteIndex!, noteKey!);
+                                      showSnackbar(
+                                          'Note updated successfully.');
+                                    }
+                                    FocusScope.of(context).unfocus();
                                   }
-                                } else {
-                                  _updateNote(noteIndex!, noteKey!);
-                                  showSnackbar('Note updated successfully.');
                                 }
-                                FocusScope.of(context).unfocus();
-                              }
-                            }
-                          },
-                          style: TextButton.styleFrom(
-                            foregroundColor: Colors.blue,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: const BorderRadius.all(
-                                Radius.circular(4),
+                              },
+                              style: TextButton.styleFrom(
+                                foregroundColor: Colors.white,
+                                backgroundColor: Colors.blue,
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(4),
+                                  ),
+                                ),
                               ),
-                              side: BorderSide(color: Colors.grey.shade400),
+                              child: const Text(
+                                'Update',
+                                style: TextStyle(color: Colors.white),
+                              ),
                             ),
                           ),
-                          child: const Text(
-                            'Update',
-                            style: TextStyle(color: Colors.blue),
+                          SizedBox(
+                            height: 40,
+                            child: TextButton(
+                              onPressed: () {
+                                _deleteAllNotes();
+                              },
+                              style: TextButton.styleFrom(
+                                foregroundColor: Colors.white,
+                                backgroundColor: Colors.red,
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(4),
+                                  ),
+                                ),
+                              ),
+                              child: const Text(
+                                'Delete All Notes',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ],
                   ),

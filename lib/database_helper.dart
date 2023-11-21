@@ -78,10 +78,8 @@ class DatabaseHelper {
 
   Future<bool> checkDuplication(String text) async {
     Database db = await instance.database;
-
     List<Map<String, dynamic>> result = await db.query(table,
         columns: [columnName], where: '$columnName = ?', whereArgs: [text]);
-
     return result.isNotEmpty;
   }
 
@@ -92,5 +90,10 @@ class DatabaseHelper {
     return List.generate(maps.length, (i) {
       return Note.fromMap(maps[i]);
     });
+  }
+
+  Future<void> deleteAllNotes() async {
+    Database db = await instance.database;
+    await db.delete(table);
   }
 }
