@@ -113,6 +113,7 @@ class _MyHomePageState extends State<MyHomePage> {
     if (confirmed == true) {
       await dbHelper.deleteAllNotes();
       _loadNotes();
+      clearFields();
       showSnackbar('All notes deleted successfully.');
     }
   }

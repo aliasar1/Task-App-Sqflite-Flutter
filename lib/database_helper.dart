@@ -78,8 +78,11 @@ class DatabaseHelper {
 
   Future<bool> checkDuplication(String text) async {
     Database db = await instance.database;
+    String lowerCaseText = text.toLowerCase();
     List<Map<String, dynamic>> result = await db.query(table,
-        columns: [columnName], where: '$columnName = ?', whereArgs: [text]);
+        columns: [columnName],
+        where: 'LOWER($columnName) = ?',
+        whereArgs: [lowerCaseText]);
     return result.isNotEmpty;
   }
 
