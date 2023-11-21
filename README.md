@@ -42,3 +42,19 @@ This Flutter project is a simple task management app that utilizes Sqflite, a SQ
 <p align="left">
   <img src="https://github.com/aliasar1/Task-App-Sqflite-Flutter/blob/main/screenshots/delete_all.png" alt="Delete All">
 </p>
+
+## To use this app follow below instructions:
+
+1. Clone this app using below syntax:
+   > https://github.com/aliasar1/Task-App-Sqflite-Flutter.git
+
+2. After cloning install packages using below syntax:
+   > flutter pub get
+
+Above command will install all the necessary packages.
+
+3. Run the app on your mobile emulator using below command:
+   > flutter run
+
+
+**HAPPY CODING!** 🚀
